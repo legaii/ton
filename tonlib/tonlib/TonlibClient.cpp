@@ -27,6 +27,7 @@
 #include "tonlib/keys/Mnemonic.h"
 #include "tonlib/keys/SimpleEncryption.h"
 #include "tonlib/TonlibError.h"
+#include "tonlib/Emulator.h"
 
 #include "smc-envelope/GenericAccount.h"
 #include "smc-envelope/ManualDns.h"
@@ -1316,6 +1317,13 @@ class GetRawAccountState : public td::actor::Actor {
   }
 };
 
+class RunE {
+ public:
+  RunE() {
+    emulator::emulate_transactions();
+  }
+};
+
 TonlibClient::TonlibClient(td::unique_ptr<TonlibCallback> callback) : callback_(std::move(callback)) {
 }
 TonlibClient::~TonlibClient() = default;
@@ -2468,6 +2476,7 @@ td::Status TonlibClient::do_request(tonlib_api::raw_getTransactions& request,
       promise.wrap([private_key = std::move(private_key)](auto&& x) mutable {
         return ToRawTransactions(std::move(private_key)).to_raw_transactions(std::move(x));
       }));
+  RunE run_e;
   return td::Status::OK();
 }
 
